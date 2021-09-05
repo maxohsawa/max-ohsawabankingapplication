@@ -9,24 +9,13 @@ import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
 
 function Navigationbar() {
 
-  // function renderTooltip(props) {
-
-  //   console.log(props.id);
-
-  //   return (
-  //     <Tooltip>
-  //       Tooltip Test
-  //     </Tooltip>
-  //   )
-  // }
-
   return (
 
     <div>
       <Navbar bg="light" expand="lg">
         <Container>
           <Navbar.Brand href="#">
-            <AccountBalanceIcon color='primary' />
+            <AccountBalanceIcon className="mr-3" />
             Bad Bank
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
