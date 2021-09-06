@@ -1,14 +1,19 @@
+// React
+import {useState} from 'react';
+import {useEffect} from 'react';
+import {useContext} from 'react';
 // React Bootstrap
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-// React
-import {useState} from 'react';
-import {useEffect} from 'react';
+// Application
+import { UserContext } from './App';
 
 function CreateAccount(){
+
+  const context = useContext(UserContext);
 
   // state of submission data
   const [ formData, updateFormData ] = useState({
@@ -40,6 +45,12 @@ function CreateAccount(){
     passwordError: false
   });
 
+  // state of the submit button's name
+  const [ nameOfSubmitButton, updateButtonName ] = useState('Create Account');
+
+  // state of successful submission
+  const [ successfulSubmit, updateSuccessfulSubmit ] = useState(false);
+
   // output all state for debugging
   // useEffect( () => {
   //   console.log('formData: ', formData);
@@ -58,7 +69,7 @@ function CreateAccount(){
       && touched.passwordTouched){
         updateValidation({...validation, submitDisabled: false});
       } 
-  }, [validation]);
+  }, [validation, touched]);
 
   function handleChange(event) {
 
@@ -107,8 +118,26 @@ function CreateAccount(){
       success = false
     }
 
-    if(success)
-      alert(JSON.stringify(formData));
+    if(success){
+      
+      context.submissionCount += 1;
+      context.submissions.push({
+        submissionID: context.submissionCount,
+        type: 'create account',
+        data: {...formData}
+      });
+      console.log(JSON.stringify(context));
+
+      updateSuccessfulSubmit(true);
+
+      updateFormData({
+        name: '', 
+        email: '', 
+        password: ''    
+      });
+
+      updateButtonName('Add another account..');
+    }
   }
 
   return (
@@ -130,7 +159,7 @@ function CreateAccount(){
                     required
                     isInvalid={errors.nameError}
                     name="name"
-                    value={formData.nameField}
+                    value={formData.name}
                     onChange={handleChange}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -146,7 +175,7 @@ function CreateAccount(){
                     required
                     isInvalid={errors.emailError}
                     name="email"
-                    value={formData.emailField}
+                    value={formData.email}
                     onChange={handleChange}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -162,20 +191,21 @@ function CreateAccount(){
                     required
                     isInvalid={errors.passwordError}
                     name="password"
-                    value={formData.passwordField}
+                    value={formData.password}
                     onChange={handleChange}
                   />
                   <Form.Control.Feedback type="invalid">
                     Password must be at least 8 characters.
                   </Form.Control.Feedback>
                 </Form.Group>
+                {successfulSubmit && <Form.Label className='text-success'>Account successfully created.</Form.Label>}
                 <Button 
                   variant="primary"
                   type="submit"
                   disabled={validation.submitDisabled}
                   onClick={handleSubmit}
                 >
-                  Create Account
+                  {nameOfSubmitButton}
                 </Button>
               </Form>
             </Card.Body>

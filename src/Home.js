@@ -2,7 +2,6 @@
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Card from 'react-bootstrap/Card';
-import Button from 'react-bootstrap/Button';
 // Image Assets
 import bankimage from './bank.png';
 
@@ -19,7 +18,6 @@ function Home() {
               <Card.Text>
                 Welcome to the worst bank.
               </Card.Text>
-              <Button variant="primary">Go somewhere</Button>
             </Card.Body>
           </Card>
         </Row>

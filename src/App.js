@@ -1,8 +1,8 @@
 // React
 import { createContext } from 'react';
 // React Router
-import HashRouter from 'react-router-dom/HashRouter';
-import Route from 'react-router-dom/Route';
+import {HashRouter} from 'react-router-dom';
+import {Route} from 'react-router-dom';
 // Application Components
 import Navigationbar from './NavigationBar';
 import Home from './Home';
@@ -11,12 +11,14 @@ import Deposit from './Deposit';
 import Withdraw from './Withdraw';
 import AllData from './AllData';
 
-const UserContext = createContext(null);
+// create UserContext
+export const UserContext = createContext(null);
 
 function App() {
+
   return (
     <HashRouter>
-        <UserContext.Provider value={{}}>
+        <UserContext.Provider value={{ submissionCount: 0, submissions: [] }}>
           <Navigationbar />
           <Route path='/' exact component={Home} />
           <Route path='/home' component={Home} />
