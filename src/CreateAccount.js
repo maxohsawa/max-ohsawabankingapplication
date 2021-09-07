@@ -51,14 +51,6 @@ function CreateAccount(){
   // state of successful submission
   const [ successfulSubmit, updateSuccessfulSubmit ] = useState(false);
 
-  // output all state for debugging
-  // useEffect( () => {
-  //   console.log('formData: ', formData);
-  //   console.log('touched: ', touched);
-  //   console.log('validation: ', validation);
-  //   console.log('errors: ', errors);
-  // }, [formData, touched, validation, errors]);
-
   useEffect( () => {
     if(validation.submitDisabled
       && !validation.nameInvalid
@@ -126,7 +118,6 @@ function CreateAccount(){
         type: 'create account',
         data: {...formData}
       });
-      console.log(JSON.stringify(context));
 
       updateSuccessfulSubmit(true);
 

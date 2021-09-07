@@ -18,7 +18,7 @@ function App() {
 
   return (
     <HashRouter>
-        <UserContext.Provider value={{ submissionCount: 0, submissions: [] }}>
+        <UserContext.Provider value={{ submissionCount: 0, balance: 0, submissions: [] }}>
           <Navigationbar />
           <Route path='/' exact component={Home} />
           <Route path='/home' component={Home} />

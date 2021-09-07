@@ -4,6 +4,7 @@ import {useEffect} from 'react';
 import {useContext} from 'react';
 // React Bootstrap
 import Container from 'react-bootstrap/Container';
+import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
@@ -33,83 +34,71 @@ function Withdraw(){
 
   // state of if error should be shown for field
   const [ errors, updateErrors ] = useState({
-    amountError: false,
     nanError: false,
+    negativeError: false,
+    amountError: false,
     errorsExist: false
   });
 
-  function checkErrors() {
-    console.log(errors.amountError || errors.nanError);
-    return false;
-  }
-
   // state of the submit button's name
-  const [ nameOfSubmitButton, updateButtonName ] = useState('Deposit');
+  const [ nameOfSubmitButton, updateButtonName ] = useState('Withdraw');
 
   // state of successful submission
   const [ successfulSubmit, updateSuccessfulSubmit ] = useState(false);
 
-  // output all state for debugging
+  // controls which error states are toggled
   useEffect( () => {
-    console.log('formData: ', formData);
-    console.log('touched: ', touched);
-    console.log('validation: ', validation);
-    console.log('errors: ', errors);
-  }, [formData, touched, validation, errors]);
+    if(touched.amountTouched){
 
-  useEffect( () => {
-    if(validation.submitDisabled
-      && !validation.amountInvalid
-      && touched.amountTouched){
-        updateValidation({...validation, submitDisabled: false});
-      } 
-  }, [validation, touched]);
+      let validationUpdates = {};
+      let errorUpdates = {};
+
+      if(isNaN(formData.amount)){
+        errorUpdates.nanError = true;
+        errorUpdates.negativeError = false;
+        errorUpdates.amountError = false;
+      }      
+      else if(formData.amount <= 0) {
+        errorUpdates.nanError = false;
+        errorUpdates.negativeError = true;
+        errorUpdates.amountError = false;
+      }
+      else if(formData.amount > context.balance){
+        errorUpdates.nanError = false;
+        errorUpdates.negativeError = false;
+        errorUpdates.amountError = true;
+      }
+
+      if(errorUpdates.nanError || errorUpdates.negativeError){
+        errorUpdates.errorsExist = true;
+        validationUpdates.submitDisabled = true;
+      }
+      else if(!errorUpdates.nanError && !errorUpdates.negativeError && errorUpdates.amountError){
+        errorUpdates.errorsExist = true;
+        validationUpdates.submitDisabled = false;
+      }
+      else {
+        errorUpdates.errorsExist = false;
+        validationUpdates.submitDisabled = false;
+      }
+
+      if(errorUpdates.amountError)
+        updateButtonName('OVERDRAFT');
+      else
+        updateButtonName('Withdraw');
+
+      updateValidation({...validation, ...validationUpdates});
+      updateErrors({...errors, ...errorUpdates});
+    }
+
+  }, [formData, touched]);
 
   function handleChange(event) {
 
-    let formDataUpdates = { [event.target.name]: event.target.value };
-    let touchedUpdates = { [event.target.name + 'Touched']: true}
-    let validationUpdates = { };
-    let errorUpdates = { };
-
-    let isNotANumber = isNaN(event.target.value);
-    console.log('isNaN: ', isNotANumber);
-
-    if(event.target.name === 'amount'){
-
-      if(isNotANumber){
-        validationUpdates.amountInvalid = true;
-      }
-      else if(event.target.value <= 0){
-        validationUpdates.amountInvalid = true;
-      }
-      else {
-        validationUpdates.amountInvalid = false;
-      }
-
-      if(touched.amountTouched && isNotANumber){
-        errorUpdates.nanError = true;
-      }
-      else if(touched.amountTouched && event.target.value <= 0){
-        errorUpdates.nanError = false;
-        errorUpdates.amountError =  true;
-      }
-      else {
-        errorUpdates.nanError = false;
-        errorUpdates.amountError = false;
-      }
-      
-      if(event.target.value <= 0 || isNotANumber)
-        validationUpdates.submitDisabled = true;
-    }
-
-    if(errorUpdates)
-      errorUpdates.errorsExist = true;
-
-    updateFormData({...formData, ...formDataUpdates});
-    updateTouched({...touched, ...touchedUpdates});
-    updateValidation({...validation, ...validationUpdates});
-    updateErrors({...errors, ...errorUpdates});    
+    updateFormData({...formData, amount: event.target.value});
+    if(event.target.value.length > 0)
+      updateTouched({amountTouched: true});
+   
   }
 
   function handleSubmit(event) {
@@ -131,65 +120,76 @@ function Withdraw(){
       context.submissionCount += 1;
       context.submissions.push({
         submissionID: context.submissionCount,
-        type: 'deposit',
-        data: {...formData}
+        type: 'withdraw',
+        data: {
+          amount: Number(formData.amount)
+        }
       });
-      console.log(JSON.stringify(context));
 
+      context.balance -= Number(formData.amount);
       updateSuccessfulSubmit(true);
 
       updateFormData({
-        name: '', 
-        email: '', 
-        password: ''    
+        amount: ''
       });
 
-      updateButtonName('Make another deposit');
+      updateErrors({...errors, errorsExist: false});
+      updateValidation({...validation, submitDisabled: true});
+      updateTouched({ amountTouched: false});
+      updateButtonName('Make another withdrawal');
     }
   }
 
   return (
     <div>
       <Container>
-        <Row className="justify-content-center mt-5">
-          <Card style={{ width: '18rem' }}>
-            <Card.Body>
-              <Card.Title>Deposit</Card.Title>
-              <Card.Text>
-                Please fill out deposit amount
-              </Card.Text>
-              <Form>
-                <Form.Group className="mb-3" controlId="formBasicText">
-                  <Form.Label>Amount</Form.Label>
-                  <Form.Control 
-                    type="text"
-                    placeholder="0"
-                    required
-                    isInvalid={errors.errorsExist}
-                    name="amount"
-                    value={formData.amount}
-                    onChange={handleChange}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {console.log(errors)}
-                    {errors.amountError && <div>Amount must be greater than zero</div>}
-                    {errors.nanError && <div>Input must be a number</div>}
-                  </Form.Control.Feedback>
-                </Form.Group>
+        <Col xs={6}>
+          <Row className="justify-content-center mt-5 h1">
+            {`Balance: $${context.balance}`}
+          </Row>
 
-                {successfulSubmit && <Form.Label className='text-success'>Amount successfully deposited</Form.Label>}
-                <Button 
-                  variant="primary"
-                  type="submit"
-                  disabled={validation.submitDisabled}
-                  onClick={handleSubmit}
-                >
-                  {nameOfSubmitButton}
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Row>
+          <Row className="justify-content-center mt-5">
+            <Card style={{ width: '18rem' }}>
+              <Card.Body>
+                <Card.Title>Withdraw</Card.Title>
+                <Card.Text>
+                  Please fill out withdraw amount
+                </Card.Text>
+                <Form>
+                  <Form.Group className="mb-3" controlId="formBasicText">
+                    <Form.Label>Amount</Form.Label>
+                    <Form.Control 
+                      type="text"
+                      placeholder="0"
+                      required
+                      isInvalid={errors.errorsExist}
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.amountError && <div>Amount is more than balance</div>}
+                      {errors.amountError && <div>Withdrawal of this amount will incur overdraft</div>}
+                      {errors.negativeError && <div>Amount cannot be less than zero</div>}
+                      {errors.nanError && <div>Input must be a number</div>}
+                    </Form.Control.Feedback>
+                  </Form.Group>
+
+                  {successfulSubmit && !touched.amountTouched && <Form.Label className='text-success'>Amount successfully withdrawn</Form.Label>}
+                  <Button 
+                    variant="primary"
+                    type="submit"
+                    disabled={validation.submitDisabled}
+                    onClick={handleSubmit}
+                  >
+                    {nameOfSubmitButton}
+                  </Button>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Row>
+        </Col>
+
       </Container>
     </div>
   )

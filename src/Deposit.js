@@ -4,6 +4,7 @@ import {useEffect} from 'react';
 import {useContext} from 'react';
 // React Bootstrap
 import Container from 'react-bootstrap/Container';
+import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
@@ -38,25 +39,13 @@ function Deposit(){
     errorsExist: false
   });
 
-  function checkErrors() {
-    console.log(errors.amountError || errors.nanError);
-    return false;
-  }
-
   // state of the submit button's name
   const [ nameOfSubmitButton, updateButtonName ] = useState('Deposit');
 
   // state of successful submission
   const [ successfulSubmit, updateSuccessfulSubmit ] = useState(false);
 
-  // output all state for debugging
-  // useEffect( () => {
-  //   console.log('formData: ', formData);
-  //   console.log('touched: ', touched);
-  //   console.log('validation: ', validation);
-  //   console.log('errors: ', errors);
-  // }, [formData, touched, validation, errors]);
-
+  // controls which error states are toggled
   useEffect( () => {
     if(touched.amountTouched){
       let errorUpdates = {};
@@ -69,76 +58,25 @@ function Deposit(){
         errorUpdates.amountError = true;
       }
 
-      if(errorUpdates.nanError || errorUpdates.amountError)
+      if(errorUpdates.nanError || errorUpdates.amountError){
         errorUpdates.errorsExist = true;
+        updateValidation({...validation, submitDisabled: true});
+      }
       else {
         errorUpdates.errorsExist = false;
         updateValidation({...validation, submitDisabled: false});
       }
-      
+
       updateErrors({...errors, ...errorUpdates});
     }
 
   }, [formData, touched]);
-
-  useEffect( () => {
-    if(validation.submitDisabled
-      && !validation.amountInvalid
-      && touched.amountTouched){
-        updateValidation({...validation, submitDisabled: false});
-      } 
-  }, [validation, touched]);
-
-  // useEffect( () => {
-  //   if(errors.nanError || errors.amountError)
-  //     updateErrors({...errors, errorsExist: true});
-  // }, [errors]);
 
   function handleChange(event) {
 
     updateFormData({...formData, amount: event.target.value});
     if(event.target.value.length > 0)
       updateTouched({amountTouched: true});
-    // let formDataUpdates = { [event.target.name]: event.target.value };
-    // let touchedUpdates = { [event.target.name + 'Touched']: true}
-    // let validationUpdates = { };
-    // let errorUpdates = { };
-
-    // let isNotANumber = isNaN(event.target.value);
-    // console.log('isNaN: ', isNotANumber);
-
-    // if(event.target.name === 'amount'){
-
-    //   if(isNotANumber){
-    //     validationUpdates.amountInvalid = true;
-    //   }
-    //   else if(event.target.value <= 0){
-    //     validationUpdates.amountInvalid = true;
-    //   }
-    //   else {
-    //     validationUpdates.amountInvalid = false;
-    //   }
-
-    //   if(touched.amountTouched && isNotANumber){
-    //     errorUpdates.nanError = true;
-    //   }
-    //   else if(touched.amountTouched && event.target.value <= 0){
-    //     errorUpdates.nanError = false;
-    //     errorUpdates.amountError =  true;
-    //   }
-    //   else {
-    //     errorUpdates.nanError = false;
-    //     errorUpdates.amountError = false;
-    //   }
-      
-    //   if(event.target.value <= 0 || isNotANumber)
-    //     validationUpdates.submitDisabled = true;
-    // }
-
-    // updateFormData({...formData, ...formDataUpdates});
-    // updateTouched({...touched, ...touchedUpdates});
-    // updateValidation({...validation, ...validationUpdates});
-    // updateErrors({...errors, ...errorUpdates});    
   }
 
   function handleSubmit(event) {
@@ -161,10 +99,12 @@ function Deposit(){
       context.submissions.push({
         submissionID: context.submissionCount,
         type: 'deposit',
-        data: {...formData}
+        data: {
+          amount: Number(formData.amount)
+        }
       });
-      console.log(JSON.stringify(context));
 
+      context.balance += Number(formData.amount);
       updateSuccessfulSubmit(true);
 
       updateFormData({
@@ -172,9 +112,7 @@ function Deposit(){
       });
 
       updateValidation({...validation, submitDisabled: true});
-
       updateTouched({ amountTouched: false});
-
       updateButtonName('Make another deposit');
     }
   }
@@ -182,45 +120,51 @@ function Deposit(){
   return (
     <div>
       <Container>
-        <Row className="justify-content-center mt-5">
-          <Card style={{ width: '18rem' }}>
-            <Card.Body>
-              <Card.Title>Deposit</Card.Title>
-              <Card.Text>
-                Please fill out deposit amount
-              </Card.Text>
-              <Form>
-                <Form.Group className="mb-3" controlId="formBasicText">
-                  <Form.Label>Amount</Form.Label>
-                  <Form.Control 
-                    type="text"
-                    placeholder="0"
-                    required
-                    isInvalid={errors.errorsExist}
-                    name="amount"
-                    value={formData.amount}
-                    onChange={handleChange}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {console.log(errors)}
-                    {errors.amountError && <div>Amount must be greater than zero</div>}
-                    {errors.nanError && <div>Input must be a number</div>}
-                  </Form.Control.Feedback>
-                </Form.Group>
+        <Col xs={6}>
+          <Row className="justify-content-center mt-5 h1">
+            {`Balance: $${context.balance}`}
+          </Row>
 
-                {successfulSubmit && <Form.Label className='text-success'>Amount successfully deposited</Form.Label>}
-                <Button 
-                  variant="primary"
-                  type="submit"
-                  disabled={validation.submitDisabled}
-                  onClick={handleSubmit}
-                >
-                  {nameOfSubmitButton}
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Row>
+          <Row className="justify-content-center mt-5">
+            <Card style={{ width: '18rem' }}>
+              <Card.Body>
+                <Card.Title>Deposit</Card.Title>
+                <Card.Text>
+                  Please fill out deposit amount
+                </Card.Text>
+                <Form>
+                  <Form.Group className="mb-3" controlId="formBasicText">
+                    <Form.Label>Amount</Form.Label>
+                    <Form.Control 
+                      type="text"
+                      placeholder="0"
+                      required
+                      isInvalid={errors.errorsExist}
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.amountError && <div>Amount must be greater than zero</div>}
+                      {errors.nanError && <div>Input must be a number</div>}
+                    </Form.Control.Feedback>
+                  </Form.Group>
+
+                  {successfulSubmit && !touched.amountTouched && <Form.Label className='text-success'>Amount successfully deposited</Form.Label>}
+                  <Button 
+                    variant="primary"
+                    type="submit"
+                    disabled={validation.submitDisabled}
+                    onClick={handleSubmit}
+                  >
+                    {nameOfSubmitButton}
+                  </Button>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Row>
+        </Col>
+
       </Container>
     </div>
   )
