@@ -50,12 +50,36 @@ function Deposit(){
   const [ successfulSubmit, updateSuccessfulSubmit ] = useState(false);
 
   // output all state for debugging
+  // useEffect( () => {
+  //   console.log('formData: ', formData);
+  //   console.log('touched: ', touched);
+  //   console.log('validation: ', validation);
+  //   console.log('errors: ', errors);
+  // }, [formData, touched, validation, errors]);
+
   useEffect( () => {
-    console.log('formData: ', formData);
-    console.log('touched: ', touched);
-    console.log('validation: ', validation);
-    console.log('errors: ', errors);
-  }, [formData, touched, validation, errors]);
+    if(touched.amountTouched){
+      let errorUpdates = {};
+      if(isNaN(formData.amount)){
+        errorUpdates.nanError = true;
+        errorUpdates.amountError = false;
+      }      
+      else if(formData.amount <= 0) {
+        errorUpdates.nanError = false;
+        errorUpdates.amountError = true;
+      }
+
+      if(errorUpdates.nanError || errorUpdates.amountError)
+        errorUpdates.errorsExist = true;
+      else {
+        errorUpdates.errorsExist = false;
+        updateValidation({...validation, submitDisabled: false});
+      }
+      
+      updateErrors({...errors, ...errorUpdates});
+    }
+
+  }, [formData, touched]);
 
   useEffect( () => {
     if(validation.submitDisabled
@@ -65,51 +89,56 @@ function Deposit(){
       } 
   }, [validation, touched]);
 
+  // useEffect( () => {
+  //   if(errors.nanError || errors.amountError)
+  //     updateErrors({...errors, errorsExist: true});
+  // }, [errors]);
+
   function handleChange(event) {
 
-    let formDataUpdates = { [event.target.name]: event.target.value };
-    let touchedUpdates = { [event.target.name + 'Touched']: true}
-    let validationUpdates = { };
-    let errorUpdates = { };
+    updateFormData({...formData, amount: event.target.value});
+    if(event.target.value.length > 0)
+      updateTouched({amountTouched: true});
+    // let formDataUpdates = { [event.target.name]: event.target.value };
+    // let touchedUpdates = { [event.target.name + 'Touched']: true}
+    // let validationUpdates = { };
+    // let errorUpdates = { };
 
-    let isNotANumber = isNaN(event.target.value);
-    console.log('isNaN: ', isNotANumber);
+    // let isNotANumber = isNaN(event.target.value);
+    // console.log('isNaN: ', isNotANumber);
 
-    if(event.target.name === 'amount'){
+    // if(event.target.name === 'amount'){
 
-      if(isNotANumber){
-        validationUpdates.amountInvalid = true;
-      }
-      else if(event.target.value <= 0){
-        validationUpdates.amountInvalid = true;
-      }
-      else {
-        validationUpdates.amountInvalid = false;
-      }
+    //   if(isNotANumber){
+    //     validationUpdates.amountInvalid = true;
+    //   }
+    //   else if(event.target.value <= 0){
+    //     validationUpdates.amountInvalid = true;
+    //   }
+    //   else {
+    //     validationUpdates.amountInvalid = false;
+    //   }
 
-      if(touched.amountTouched && isNotANumber){
-        errorUpdates.nanError = true;
-      }
-      else if(touched.amountTouched && event.target.value <= 0){
-        errorUpdates.nanError = false;
-        errorUpdates.amountError =  true;
-      }
-      else {
-        errorUpdates.nanError = false;
-        errorUpdates.amountError = false;
-      }
+    //   if(touched.amountTouched && isNotANumber){
+    //     errorUpdates.nanError = true;
+    //   }
+    //   else if(touched.amountTouched && event.target.value <= 0){
+    //     errorUpdates.nanError = false;
+    //     errorUpdates.amountError =  true;
+    //   }
+    //   else {
+    //     errorUpdates.nanError = false;
+    //     errorUpdates.amountError = false;
+    //   }
       
-      if(event.target.value <= 0 || isNotANumber)
-        validationUpdates.submitDisabled = true;
-    }
+    //   if(event.target.value <= 0 || isNotANumber)
+    //     validationUpdates.submitDisabled = true;
+    // }
 
-    if(errorUpdates)
-      errorUpdates.errorsExist = true;
-
-    updateFormData({...formData, ...formDataUpdates});
-    updateTouched({...touched, ...touchedUpdates});
-    updateValidation({...validation, ...validationUpdates});
-    updateErrors({...errors, ...errorUpdates});    
+    // updateFormData({...formData, ...formDataUpdates});
+    // updateTouched({...touched, ...touchedUpdates});
+    // updateValidation({...validation, ...validationUpdates});
+    // updateErrors({...errors, ...errorUpdates});    
   }
 
   function handleSubmit(event) {
@@ -139,10 +168,12 @@ function Deposit(){
       updateSuccessfulSubmit(true);
 
       updateFormData({
-        name: '', 
-        email: '', 
-        password: ''    
+        amount: ''
       });
+
+      updateValidation({...validation, submitDisabled: true});
+
+      updateTouched({ amountTouched: false});
 
       updateButtonName('Make another deposit');
     }
