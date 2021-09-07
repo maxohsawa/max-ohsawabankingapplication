@@ -136,7 +136,7 @@ function CreateAccount(){
         password: ''    
       });
 
-      updateButtonName('Add another account..');
+      updateButtonName('Add another account');
     }
   }
 
@@ -148,7 +148,7 @@ function CreateAccount(){
             <Card.Body>
               <Card.Title>Create Account</Card.Title>
               <Card.Text>
-                Please fill out the fields
+                Please fill out fields
               </Card.Text>
               <Form>
                 <Form.Group className="mb-3" controlId="formBasicText">
@@ -163,7 +163,7 @@ function CreateAccount(){
                     onChange={handleChange}
                   />
                   <Form.Control.Feedback type="invalid">
-                    Name cannot be blank.
+                    Name cannot be blank
                   </Form.Control.Feedback>
                 </Form.Group>
 
@@ -179,7 +179,7 @@ function CreateAccount(){
                     onChange={handleChange}
                   />
                   <Form.Control.Feedback type="invalid">
-                    Email cannot be blank.
+                    Email cannot be blank
                   </Form.Control.Feedback>
                 </Form.Group>
 
@@ -195,7 +195,7 @@ function CreateAccount(){
                     onChange={handleChange}
                   />
                   <Form.Control.Feedback type="invalid">
-                    Password must be at least 8 characters.
+                    Password must be at least 8 characters
                   </Form.Control.Feedback>
                 </Form.Group>
                 {successfulSubmit && <Form.Label className='text-success'>Account successfully created.</Form.Label>}
