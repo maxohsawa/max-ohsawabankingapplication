@@ -120,7 +120,7 @@ function Deposit(){
   return (
     <div>
       <Container>
-        <Col xs={6}>
+        <Col>
           <Row className="justify-content-center mt-5 h1">
             {`Balance: $${context.balance}`}
           </Row>
